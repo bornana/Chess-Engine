@@ -3,10 +3,9 @@
 #include <chrono>
 #include <cmath>
 #include <memory>
+#include <unordered_map>
 #include "magic_numbers.hpp"
 #include "non_binary_tree.hpp"
-
-
 class Tree : public std::enable_shared_from_this<Tree> {
 public:
     using NodePtr = std::shared_ptr<Tree>;//allow multiple pointers to reference the same object of type Tree
@@ -54,7 +53,7 @@ public:
     void add_value(double val){
         value += val;
     }
-    
+    std::unordered_map<std::string, int> position_history;
 
 private:
     GameState state;

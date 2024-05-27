@@ -4,17 +4,13 @@
 #include <chrono>
 #include <cmath>
 #include <memory>
-#include "magic"
+#include <unordered_map>
+
+#include "magic_numbers.hpp"
 class Tree
 {
-using NodePtr = std::shared_ptr<Tree>;
-private:
-    GameState state;
-    NodePtr parent;
-    int visits; 
-    double value;
-    std::vector<NodePtr> leafs;
 public:
+    using NodePtr = std::shared_ptr<Tree>;
     Tree(const GameState& x, NodePtr parent = nullptr);
     
     NodePtr AddLeaf(const GameState& leafstate);
@@ -33,5 +29,11 @@ public:
     void add_visit();
 
     void add_value(double val);
-    
+
+private:
+    GameState state;
+    NodePtr parent;
+    int visits; 
+    double value;
+    std::vector<NodePtr> leafs;
 };

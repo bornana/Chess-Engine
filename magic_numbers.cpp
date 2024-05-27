@@ -354,6 +354,7 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
 
 
     GameState::GameState(){
+        fifty_move_counter = 0;
         whiteP = 0;
         whiteN = 1;
         whiteB = 2;
@@ -417,8 +418,16 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
     void GameState::move_piece(int start, int destination, GameState state, int index, int side){
         uint64 piece = 1ULL << start;
         uint64 piece_dest = 1ULL << destination;
+        int prev_num_of_enemies;
+        if(!side) prev_num_of_enemies = count_1s(all_black_pieces);
+        else prev_num_of_enemies = count_1s(all_white_pieces);
         uint64 moved = state.get_board()[index] ^ (piece_dest);// moved now has all the pieces of the type being moved with an extra bit which is the destination of one of the pieces
         state.update_board((moved ^ piece), index);//remove the piece's previous spot and update the board with the piece moved
+        if(!side){
+            if(index != whiteP && count_1s(all_black_pieces()) != prev_num_of_enemies) fifty_move_counter++;
+            else if (index != blackP && count_1s(all_white_pieces()) != prev_num_of_enemies) fifty_move_counter++;//if there wan no pawn move or take, start counting for fifty move rule
+            else fifty_move_counter = 0;
+        }
     };
     std::vector<GameState> GameState::get_pseudo_legal_moves(int side){//pseudo legal means moves that can be played even if they make the king in check
         std::vector<GameState> moves;
@@ -579,7 +588,7 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
         }
         return moves;
     };
-    std::vector<GameState> GameState::get_legal_moves(int side){
+    std::vector<GameState> GameState::get_legal_moves(int side) const{
         
         std::vector<GameState> legal_moves, pseudo_legal = get_pseudo_legal_moves(side);
         for (int i = 0; i < pseudo_legal.size(); i++)
@@ -589,12 +598,41 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
         return legal_moves;
         
     };
-    bool GameState::is_terminal() const{
-        return true;
+    bool GameState::is_terminal(int side) const{
+        std::vector<GameState> white_moves, black_moves;
+        white_moves = get_legal_moves(white);
+        black_moves = get_legal_moves(black);
+        if(fifty_move_counter >= 50) return true;
+        if(!side){
+            if(white_moves.size() == 0) return true;
+            if(board[whiteP] == 0 && board[whiteR] == 0 && board[whiteQ] == 0 && (board[whiteB] == 0 || board[whiteN] == 0)) return true;//if no sufficient pieces to checkmate then draw
+        }
+        else{
+            if(black_moves.size() == 0) return true;//if player doesnt have any legal moves he is in draw or mate
+            if(board[blackP] == 0 && board[blackR] == 0 && board[blackQ] == 0 && (board[blackB] == 0 || board[blackN] == 0)) return true;
+        }
+        
+        return false;
     };
-    double GameState::get_result() const{
-        return 1.5;
+    double GameState::get_result(side) const{
+        std::vector<GameState> player_moves = get_legal_moves(side), enemy_moves = get_legal_moves(!side);
+        if(fifty_move_counter >= 50) return 0;//according to the rule if no pawn moves or takes for 50 turns then its a draw
+        if(player_moves == 0){
+            if(is_checked(side, board)) return -1;//if the player is checked and cant move he lost
+            return 0;//if he cant move but no check then its a draw(we check for repetition in mcts code)
+        }
+        else if(enemy_moves == 0) return 1;
+        return 0;//because we only call code if game ended then we can assume that player drew
     };
+    std::string GameState::hash_position() const {
+        std::string hash;
+        for (const auto& row : board) {
+            for (const auto& piece : row) {
+                hash += piece.to_string();
+            }
+        }
+        return hash;
+    }
     //bool operator ==(const GameState& other)const;
 
 

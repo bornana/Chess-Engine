@@ -72,7 +72,7 @@ uint64 all_king_moves_mask(int square, uint64 blockers);
 class GameState{
 private:
     std::vector<uint64> board;
-    int whiteP, whiteN, whiteB, whiteR, whiteQ, whiteK, blackP, blackN, blackB, blackR, blackQ, blackK;
+    int whiteP, whiteN, whiteB, whiteR, whiteQ, whiteK, blackP, blackN, blackB, blackR, blackQ, blackK, fifty_move_counter;
 public:
     GameState();
     uint64 all_white_pieces();
@@ -83,8 +83,9 @@ public:
     void update_board(uint64 b, int index);
     void move_piece(int start, int destination, GameState state, int index, int side);
     std::vector<GameState> get_pseudo_legal_moves(int side);
-    std::vector<GameState> get_legal_moves(int side);
+    std::vector<GameState> get_legal_moves(int side) const;
     bool is_terminal() const;
-    double get_result() const;
+    double get_result(int side) const;
+    std::string hash_position() const;
     bool operator ==(const GameState& other)const;
 };
