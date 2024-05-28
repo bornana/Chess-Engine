@@ -97,12 +97,6 @@ void mcts(Tree::NodePtr root, int num_simulations, int side){
     }
     
 }
-//tasks:
-//castling?
-//find NN
-//connect with main project
-//add firebase
-//learn for math bagrut?
 int main() {
     std::srand(std::time(0));
 
