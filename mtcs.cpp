@@ -10,11 +10,7 @@
 #include "non_binary_tree.hpp"
 #include "magic_numbers.hpp"
 using NodePtr = std::shared_ptr<Tree>;
-//tasks:
-//castling?
-//find NN
-//connect with main project
-//fix all pop 1st bits
+
 
 enum {
 	a8, b8, c8, d8, e8, f8, g8, h8,
