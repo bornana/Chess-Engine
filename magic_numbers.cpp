@@ -12,10 +12,6 @@ const uint64 not_a_file = 18374403900871474942ULL;
 const uint64 not_ab_files = 18229723555195321596ULL;
 const uint64 not_h_file = 9187201950435737471ULL;
 const uint64 not_gh_files = 4557430888798830399ULL;
-std::vector<uint64> Rmagics = std::vector<uint64>(64, 0ULL);
-std::vector<uint64> Bmagics = std::vector<uint64>(64, 0ULL);//define the macic numbers vectors here so they can be used in the find moves functions, though we will only fill them with magic numbers in main to ensure we don't do it multiple times
-std::vector<std::vector<uint64>> ratt_tables = std::vector<std::vector<uint64>>(64);
-std::vector<std::vector<uint64>> batt_tables = std::vector<std::vector<uint64>>(64);//vectors for each square on the board a vector of all possible attack and blocker patterns
 
 
 
@@ -81,11 +77,11 @@ int pop_1st_bit(uint64* bb) {
     return BitTable[(fold * 0x783a9b23) >> 26];
 }
 
-uint64 index_to_uint64(int index, int bits, uint64 m) {
+uint64 index_to_uint64(int index, int bits, uint64 num) {
     int i, j;
     uint64 result = 0ULL;
     for (i = 0; i < bits; i++) {
-        j = pop_1st_bit(&m);
+        j = pop_1st_bit(&num);
         if (index & (1 << i)) result |= (1ULL << j);
     }
     return result;
@@ -165,7 +161,7 @@ int transform(uint64 b, uint64 magic, int bits) {
 #endif
 }
 
-uint64 find_magic(int sq, int m, int bishop) {
+uint64 find_magic(int sq, int num_of_moves, int bishop) {
     uint64 mask, b[4096], a[4096], used[4096], magic;
     int i, j, k, n, fail;
 
@@ -181,7 +177,7 @@ uint64 find_magic(int sq, int m, int bishop) {
         if (count_1s((mask * magic) & 0xFF00000000000000ULL) < 6) continue;
         for (i = 0; i < 4096; i++) used[i] = 0ULL;
         for (i = 0, fail = 0; !fail && i < (1 << n); i++) {
-            j = transform(b[i], magic, m);//j is the index for the possible moves with the given blockers that should be given if the magic number is correct
+            j = transform(b[i], magic, num_of_moves);//j is the index for the possible moves with the given blockers that should be given if the magic number is correct
             if (used[j] == 0ULL) used[j] = a[i];//fill used with a
             else if (used[j] != a[i]) fail = 1;//used[j] should represent a[i], if it doesnt then the index is wrong and so is the magic number. in that case stop the loop and find new magic
         }
@@ -429,7 +425,7 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
             else fifty_move_counter = 0;
         }
     };
-    std::vector<GameState> GameState::get_pseudo_legal_moves(int side){//pseudo legal means moves that can be played even if they make the king in check
+    std::vector<GameState> GameState::get_pseudo_legal_moves(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables){
         std::vector<GameState> moves;
         GameState help = GameState();
         uint64 piecemoves, B_attacks, R_attacks;
@@ -588,9 +584,9 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
         }
         return moves;
     };
-    std::vector<GameState> GameState::get_legal_moves(int side) const{
+    std::vector<GameState> GameState::get_legal_moves(int side,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const{
         
-        std::vector<GameState> legal_moves, pseudo_legal = get_pseudo_legal_moves(side);
+        std::vector<GameState> legal_moves, pseudo_legal = get_pseudo_legal_moves(side,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tablesint side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
         for (int i = 0; i < pseudo_legal.size(); i++)
         {
             if(!is_checked(side, pseudo_legal[i])) legal_moves.push_back(pseudo_legal[i]); 
@@ -598,10 +594,10 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
         return legal_moves;
         
     };
-    bool GameState::is_terminal(int side) const{
+    bool GameState::is_terminal(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const{
         std::vector<GameState> white_moves, black_moves;
-        white_moves = get_legal_moves(white);
-        black_moves = get_legal_moves(black);
+        white_moves = get_legal_moves(white,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
+        black_moves = get_legal_moves(black,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
         if(fifty_move_counter >= 50) return true;
         if(!side){
             if(white_moves.size() == 0) return true;
@@ -614,8 +610,8 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
         
         return false;
     };
-    double GameState::get_result(side) const{
-        std::vector<GameState> player_moves = get_legal_moves(side), enemy_moves = get_legal_moves(!side);
+    double GameState::get_result(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const{
+        std::vector<GameState> player_moves = get_legal_moves(side,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables), enemy_moves = get_legal_moves(!side,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
         if(fifty_move_counter >= 50) return 0;//according to the rule if no pawn moves or takes for 50 turns then its a draw
         if(player_moves == 0){
             if(is_checked(side, board)) return -1;//if the player is checked and cant move he lost
