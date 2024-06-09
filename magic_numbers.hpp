@@ -82,10 +82,10 @@ public:
     int num_of_pieces(int side);
     void update_board(uint64 b, int index);
     void move_piece(int start, int destination, GameState state, int index, int side);
-    std::vector<GameState> get_pseudo_legal_moves(int side);
-    std::vector<GameState> get_legal_moves(int side) const;
-    bool is_terminal() const;
-    double get_result(int side) const;
+    std::vector<GameState> get_pseudo_legal_moves(int side, ,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
+    std::vector<GameState> get_legal_moves(int side, ,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
+    bool is_terminal(int side, ,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
+    double get_result(int side, ,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
     std::string hash_position() const;
-    bool operator ==(const GameState& other)const;
+    //bool operator ==(const GameState& other)const;
 };
