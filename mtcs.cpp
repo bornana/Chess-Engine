@@ -10,6 +10,11 @@
 #include "non_binary_tree.hpp"
 #include "magic_numbers.hpp"
 using NodePtr = std::shared_ptr<Tree>;
+//tasks:
+//castling?
+//find NN
+//connect with main project
+//fix all pop 1st bits
 
 enum {
 	a8, b8, c8, d8, e8, f8, g8, h8,
@@ -22,18 +27,39 @@ enum {
 	a1, b1, c1, d1, e1, f1, g1, h1,
 };
 
+int RBits[64] = {
+  12, 11, 11, 11, 11, 11, 11, 12,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  12, 11, 11, 11, 11, 11, 11, 12
+};
+
+int BBits[64] = {
+  6, 5, 5, 5, 5, 5, 5, 6,
+  5, 5, 5, 5, 5, 5, 5, 5,
+  5, 5, 7, 7, 7, 7, 5, 5,
+  5, 5, 7, 9, 9, 7, 5, 5,
+  5, 5, 7, 9, 9, 7, 5, 5,
+  5, 5, 7, 7, 7, 7, 5, 5,
+  5, 5, 5, 5, 5, 5, 5, 5,
+  6, 5, 5, 5, 5, 5, 5, 6
+};
+
 enum { white, black };
 
 Tree::NodePtr select(Tree::NodePtr root){
     NodePtr node = root;
     while (!node->get_children().empty())
     {
-        node = *std::max_element(node -> get_children().begin(), node -> get_children().end(),
-        [](const NodePtr& a, const NodePtr& b){
+        node = *std::max_element(node -> get_children().begin(), node -> get_children().end(), [](const NodePtr& a, const NodePtr& b){
             double ucb1_a = a -> get_value() / a -> get_visits() + std::sqrt(2*std::log(a -> get_parent() -> get_visits() / a -> get_visits()));
             double ucb1_b = b -> get_value() / b -> get_visits() + std::sqrt(2*std::log(b -> get_parent() -> get_visits() / b -> get_visits()));
             return ucb1_a < ucb1_b;//ucb1 equation, look in project book for explanation on the equation
-        });
+        };);
 
     }
     return node;
@@ -97,9 +123,20 @@ void mcts(Tree::NodePtr root, int num_simulations, int side){
     }
     
 }
+
 int main() {
     std::srand(std::time(0));
+    std::vector<uint64> Rmagics;
+    std::vector<uint64> Bmagics;
+    std::vector<std::vector<uint64>> ratt_tables;
+    std::vector<std::vector<uint64>> batt_tables;
+    for (int i = 0; i < 64; i++)
+    {
+        Rmagics.push_back(find_magic(i,RBits[i], 0));
+        Bmagics.push_back(find_magic(i,BBits[i], 1));
+    }
 
+    
     int computer_player = white;
     GameState initial_state;
 
