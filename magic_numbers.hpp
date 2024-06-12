@@ -72,20 +72,26 @@ uint64 all_king_moves_mask(int square, uint64 blockers);
 class GameState{
 private:
     std::vector<uint64> board;
-    int whiteP, whiteN, whiteB, whiteR, whiteQ, whiteK, blackP, blackN, blackB, blackR, blackQ, blackK, fifty_move_counter;
+    int whiteP, whiteN, whiteB, whiteR, whiteQ, whiteK, blackP, blackN, blackB, blackR, blackQ, blackK, piecemoved;
+    bool atepiece;
 public:
     GameState();
-    uint64 all_white_pieces();
-    uint64 all_black_pieces();
-    bool is_checked(int side, GameState move);
-    std::vector<uint64> get_board();
-    int num_of_pieces(int side);
+    GameState(std::vector<uint64> new_board, int piecemoved, bool new_atepiece);
+
+    uint64 all_white_pieces()const;
+    uint64 all_black_pieces()const;
+    bool is_checked(int side, GameState move) const;
+    std::vector<uint64> get_board()const;
+    int get_moved_piece() const;
+    bool get_if_ate_piece() const;
+    int num_of_pieces(int side)const;
     void update_board(uint64 b, int index);
-    void move_piece(int start, int destination, GameState state, int index, int side);
-    std::vector<GameState> get_pseudo_legal_moves(int side, ,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
-    std::vector<GameState> get_legal_moves(int side, ,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
-    bool is_terminal(int side, ,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
-    double get_result(int side, ,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
+    void move_piece(int start, int destination, GameState state, int index, int side) const;
+    std::vector<GameState> get_pseudo_legal_moves(int side, std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
+    std::vector<GameState> get_legal_moves(int side, std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
+    bool is_terminal(int side, std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
+    double get_result(int side, std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const;
+    int piece_type(int square) const;
     std::string hash_position() const;
     //bool operator ==(const GameState& other)const;
 };

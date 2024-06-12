@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 #include "magic_numbers.hpp"
-class Tree
+class Tree : public std::enable_shared_from_this<Tree>
 {
 public:
     using NodePtr = std::shared_ptr<Tree>;
@@ -15,13 +15,13 @@ public:
     
     NodePtr AddLeaf(const GameState& leafstate);
 
-    bool Finished_Branch();
+    bool Finished_Branch(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
 
-    const GameState& get_state();
+    const GameState& get_state() const;
 
-    const std::vector<NodePtr>& get_children();
+    const std::vector<NodePtr>& get_children() const;
 
-    NodePtr get_parent();
+    NodePtr get_parent() const;
 
     int get_visits();
     
@@ -33,7 +33,7 @@ public:
 private:
     GameState state;
     NodePtr parent;
-    int visits; 
+    int visits;
     double value;
     std::vector<NodePtr> leafs;
 };

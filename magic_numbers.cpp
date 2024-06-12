@@ -17,14 +17,14 @@ const uint64 not_gh_files = 4557430888798830399ULL;
 
 
 enum {
-	a8, b8, c8, d8, e8, f8, g8, h8,
-	a7, b7, c7, d7, e7, f7, g7, h7,
-	a6, b6, c6, d6, e6, f6, g6, h6,
-	a5, b5, c5, d5, e5, f5, g5, h5,
-	a4, b4, c4, d4, e4, f4, g4, h4,
-	a3, b3, c3, d3, e3, f3, g3, h3,
-	a2, b2, c2, d2, e2, f2, g2, h2,
-	a1, b1, c1, d1, e1, f1, g1, h1,
+    a8, b8, c8, d8, e8, f8, g8, h8,
+    a7, b7, c7, d7, e7, f7, g7, h7,
+    a6, b6, c6, d6, e6, f6, g6, h6,
+    a5, b5, c5, d5, e5, f5, g5, h5,
+    a4, b4, c4, d4, e4, f4, g4, h4,
+    a3, b3, c3, d3, e3, f3, g3, h3,
+    a2, b2, c2, d2, e2, f2, g2, h2,
+    a1, b1, c1, d1, e1, f1, g1, h1,
 };
 
 enum { white, black };
@@ -58,6 +58,7 @@ int count_1s(uint64 b) {
     for (r = 0; b; r++, b &= b - 1);
     return r;
 }
+
 
 const int BitTable[64] = {
   63, 30, 3, 32, 25, 41, 22, 33,
@@ -212,22 +213,22 @@ int BBits[64] = {
 // print bitboard
 void print_bitboard(uint64 bitboard)
 {
-	printf("\n");
-	for (int rank = 0; rank < 8; ++rank)
-	{
-		// print row
-		printf("  %d ", 8 - rank);
-		for (int file = 0; file < 8; ++file)
-		{
-			int square_index = rank * 8 + file;
+    printf("\n");
+    for (int rank = 0; rank < 8; ++rank)
+    {
+        // print row
+        printf("  %d ", 8 - rank);
+        for (int file = 0; file < 8; ++file)
+        {
+            int square_index = rank * 8 + file;
 
-			// print board state (1- occupied, 0- free)
-			printf(" %d", get_bit(bitboard, square_index) ? 1 : 0);
-		}
-		printf("\n");
-	}
-	printf("\n     a b c d e f g h\n\n");
-	printf("     Bitboard value: %llu\n\n", bitboard);
+            // print board state (1- occupied, 0- free)
+            printf(" %d", get_bit(bitboard, square_index) ? 1 : 0);
+        }
+        printf("\n");
+    }
+    printf("\n     a b c d e f g h\n\n");
+    printf("     Bitboard value: %llu\n\n", bitboard);
 }
 //
 //
@@ -241,7 +242,6 @@ uint64 pawn_move_mask(int square, int side, uint64 blockers){
     set_bit(bitboard, square);
     bool doublemove = false;
     uint64 moves = 0ULL;
-    int temp;
 
     // white pawns
     if(!side)
@@ -252,7 +252,7 @@ uint64 pawn_move_mask(int square, int side, uint64 blockers){
             doublemove = true;
         }
     }
-	// black pawns
+    // black pawns
     else
     {
         moves |= bitboard << 8;
@@ -272,35 +272,35 @@ uint64 pawn_move_mask(int square, int side, uint64 blockers){
     if(doublemove && count_1s(blockers) ){
         if(!side){
             moves ^= (bitboard >> 16);
-        } 
+        }
         else {
             moves ^= (bitboard << 16);
-        }   
+        }
     }*/
 
     return moves;//return move mask
 }
 uint64 pawn_capture_mask(int square, int side, uint64 enemies){
-	// set piece bitboard
-	uint64 bitboard = 0ULL;
-	set_bit(bitboard, square);
+    // set piece bitboard
+    uint64 bitboard = 0ULL;
+    set_bit(bitboard, square);
 
-	// set attack bitboard
-	uint64 attacks = 0ULL;
+    // set attack bitboard
+    uint64 attacks = 0ULL;
 
-	if (!side)
-	{
-		if ((bitboard >> 7) & not_a_file) attacks |= (bitboard >> 7);
-		if ((bitboard >> 9) & not_h_file) attacks |= (bitboard >> 9);
-	}
+    if (!side)
+    {
+        if ((bitboard >> 7) & not_a_file) attacks |= (bitboard >> 7);
+        if ((bitboard >> 9) & not_h_file) attacks |= (bitboard >> 9);
+    }
 
-	else
-	{
-		if ((bitboard << 7) & not_h_file) attacks |= (bitboard << 7);
-		if ((bitboard << 9) & not_a_file) attacks |= (bitboard << 9);
-	}
+    else
+    {
+        if ((bitboard << 7) & not_h_file) attacks |= (bitboard << 7);
+        if ((bitboard << 9) & not_a_file) attacks |= (bitboard << 9);
+    }
     attacks &= enemies;
-	return attacks;// return attack mask
+    return attacks;// return attack mask
 }
 uint64 all_pawn_moves_mask(int square, int side, uint64 enemies, uint64 blockers){
     uint64 allmoves = 0ULL;
@@ -348,9 +348,10 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
 }
 
 
-
+    
     GameState::GameState(){
-        fifty_move_counter = 0;
+        piecemoved = 0;
+        atepiece = false;
         whiteP = 0;
         whiteN = 1;
         whiteB = 2;
@@ -377,16 +378,47 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
         board[blackQ] = 8ULL;
         board[blackK] = 16ULL;
     };
-    uint64 GameState::all_white_pieces(){
+
+    GameState::GameState(std::vector<uint64> new_board, int last_piecemoved, bool new_atepiece){
+        piecemoved = last_piecemoved;
+        atepiece = new_atepiece;
+        whiteP = 0;
+        whiteN = 1;
+        whiteB = 2;
+        whiteR = 3;
+        whiteQ = 4;
+        whiteK = 5;
+        blackP = 6;
+        blackN = 7;
+        blackB = 8;
+        blackR = 9;
+        blackQ = 10;
+        blackK = 11;
+        board = new_board;
+        board[whiteP] = 71776119061217280ULL;
+        board[whiteN] = 4755801206503243776ULL;
+        board[whiteB] = 2594073385365405696ULL;
+        board[whiteR] = 9295429630892703744ULL;
+        board[whiteQ] = 1152921504606846976ULL;
+        board[whiteK] = 576460752303423488;
+        board[blackP] = 65280ULL;
+        board[blackN] = 66ULL;
+        board[blackB] = 36ULL;
+        board[blackR] = 129ULL;
+        board[blackQ] = 8ULL;
+        board[blackK] = 16ULL;
+    };
+    
+    uint64 GameState::all_white_pieces()const{
         uint64 bitboard = 0ULL;
         return (bitboard | board[whiteP] | board[whiteN] | board[whiteB] | board[whiteR] | board[whiteQ] | board[whiteK]);
     };
-    uint64 GameState::all_black_pieces(){
+    uint64 GameState::all_black_pieces()const{
         uint64 bitboard = 0ULL;
         return bitboard | board[blackP] | board[blackN] | board[blackB] | board[blackR] | board[blackQ] | board[blackK];
     };
-    bool GameState::is_checked(int side, GameState move){
-        uint64 king, state;
+    bool GameState::is_checked(int side, GameState move) const{
+        uint64 king;
         std::vector<GameState> moves;
         if(!side){
             king = board[whiteK];
@@ -398,10 +430,18 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
         }
         return false;
     };
-    std::vector<uint64> GameState::get_board(){
+    std::vector<uint64> GameState::get_board()const{
         return board;
     };
-    int GameState::num_of_pieces(int side){
+
+    int GameState::get_moved_piece() const{
+        return piecemoved;
+    }
+
+    bool GameState::get_if_ate_piece() const{
+        return atepiece;
+    }
+    int GameState::num_of_pieces(int side)const{
         int sum_pieces = 0;
         for(int i = 5 * side; i < (5*side) + 5; i++){
             sum_pieces += count_1s(board[i]);
@@ -411,26 +451,22 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
     void GameState::update_board(uint64 b, int index){
         board[index] = b;
     };
-    void GameState::move_piece(int start, int destination, GameState state, int index, int side){
+    void GameState::move_piece(int start, int destination, GameState state, int index, int side) const {
         uint64 piece = 1ULL << start;
         uint64 piece_dest = 1ULL << destination;
         int prev_num_of_enemies;
-        if(!side) prev_num_of_enemies = count_1s(all_black_pieces);
-        else prev_num_of_enemies = count_1s(all_white_pieces);
+        if(!side) prev_num_of_enemies = count_1s(all_black_pieces());
+        else prev_num_of_enemies = count_1s(all_white_pieces());
         uint64 moved = state.get_board()[index] ^ (piece_dest);// moved now has all the pieces of the type being moved with an extra bit which is the destination of one of the pieces
         state.update_board((moved ^ piece), index);//remove the piece's previous spot and update the board with the piece moved
-        if(!side){
-            if(index != whiteP && count_1s(all_black_pieces()) != prev_num_of_enemies) fifty_move_counter++;
-            else if (index != blackP && count_1s(all_white_pieces()) != prev_num_of_enemies) fifty_move_counter++;//if there wan no pawn move or take, start counting for fifty move rule
-            else fifty_move_counter = 0;
-        }
     };
-    std::vector<GameState> GameState::get_pseudo_legal_moves(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables){
+    std::vector<GameState> GameState::get_pseudo_legal_moves(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const{
         std::vector<GameState> moves;
-        GameState help = GameState();
+        GameState help = *this;
         uint64 piecemoves, B_attacks, R_attacks;
-        int index = 0, individual_move;
+        int individual_move;
         int piecesquare;
+        bool atepiece = false;
         std::vector<uint64> temp = board;
         if(!side){//for white pieces we will push each move from each piece into the moves vector
             for(int i = 0; i < count_1s(board[whiteP]); i++){//for each pawn
@@ -438,10 +474,12 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
                 piecemoves = all_pawn_moves_mask(piecesquare, side, all_black_pieces(), all_white_pieces());//piecemoves is bitboard with all pawn moves
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(piecemoves); j++){
+                    help = GameState(board, whiteP, atepiece);//reset help to original state, because for each gamestate in moves we want an individual move, and add to the state what piece will be moved, for later draw searches
                     individual_move = pop_1st_bit(&piecemoves);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, whiteP, side);
+                    if(all_black_pieces() > help.all_black_pieces()) atepiece = true;
+                    else atepiece = false;
                     moves.push_back(help);
-                    help.update_board(board[whiteP], whiteP);//reset help to original state, because for each gamestate in moves we want an individual move
                 }
             }
             for(int i = 0; i < count_1s(board[whiteN]); i++){//for each knight
@@ -449,61 +487,74 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
                 piecemoves = all_knight_moves_mask(piecesquare, all_white_pieces());//piecemoves is bitboard with all knight moves
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(piecemoves); j++){
+                    help = GameState(board, whiteN, atepiece);//reset help to original state, because for each gamestate in moves we want an individual move, and add to the state what piece will be moved, for later draw searches
                     individual_move = pop_1st_bit(&piecemoves);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, whiteN, side);
+                    if(all_black_pieces() > help.all_black_pieces()) atepiece = true;
+                    else atepiece = false;
                     moves.push_back(help);
-                    help.update_board(board[whiteN], whiteN);//reset help to original state, because for each gamestate in moves we want an individual move
                 }
             }
             for(int i = 0; i < count_1s(board[whiteB]); i++){//for each bishop
                 piecesquare = pop_1st_bit(&temp[whiteB]);//piecesquare is current bishop's location
-                B_attacks = batt_tables[piecesquare][transform(all_white_pieces(), Bmagics[piecesquare], BBits[piecesquare])]; 
+                B_attacks = batt_tables[piecesquare][transform(all_white_pieces(), Bmagics[piecesquare], BBits[piecesquare])];
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(B_attacks); j++){
+                    help = GameState(board, whiteB, atepiece);//reset help to original state, because for each gamestate in moves we want an individual move, and add to the state what piece will be moved, for later draw searches
                     individual_move = pop_1st_bit(&B_attacks);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, whiteB, side);
+                    if(all_black_pieces() > help.all_black_pieces()) atepiece = true;
+                    else atepiece = false;
                     moves.push_back(help);
-                    help.update_board(board[whiteB], whiteB);//reset help to original state, because for each gamestate in moves we want an individual move
                 }
             }
             for(int i = 0; i < count_1s(board[whiteR]); i++){//for each bishop
                 piecesquare = pop_1st_bit(&temp[whiteR]);//piecesquare is current bishop's location
-                R_attacks = ratt_tables[piecesquare][transform(all_white_pieces(),Rmagics[piecesquare], RBits[piecesquare])]; 
+                R_attacks = ratt_tables[piecesquare][transform(all_white_pieces(),Rmagics[piecesquare], RBits[piecesquare])];
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(R_attacks); j++){
+                    help = GameState(board, whiteR, atepiece);//reset help to original state, because for each gamestate in moves we want an individual move, and add to the state what piece will be moved, for later draw searches
                     individual_move = pop_1st_bit(&R_attacks);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, whiteR, side);
+                    if(all_black_pieces() > help.all_black_pieces()) atepiece = true;
+                    else atepiece = false;
                     moves.push_back(help);
-                    help.update_board(board[whiteR], whiteR);//reset help to original state, because for each gamestate in moves we want an individual move
                 }
             }
             for(int i = 0; i < count_1s(board[whiteQ]); i++){//for each bishop
                 piecesquare = pop_1st_bit(&temp[whiteQ]);//piecesquare is current bishop's location
-                B_attacks = batt_tables[piecesquare][transform(all_white_pieces(), Bmagics[piecesquare], BBits[piecesquare])]; 
-                R_attacks = ratt_tables[piecesquare][transform(all_white_pieces(),Rmagics[piecesquare], RBits[piecesquare])]; 
+                B_attacks = batt_tables[piecesquare][transform(all_white_pieces(), Bmagics[piecesquare], BBits[piecesquare])];
+                R_attacks = ratt_tables[piecesquare][transform(all_white_pieces(),Rmagics[piecesquare], RBits[piecesquare])];
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(B_attacks); j++){
+                    help = GameState(board, whiteQ, atepiece);//reset help to original state, because for each gamestate in moves we want an individual move, and add to the state what piece will be moved, for later draw searches
                     individual_move = pop_1st_bit(&B_attacks);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, whiteQ, side);
+                    if(all_black_pieces() > help.all_black_pieces()) atepiece = true;
+                    else atepiece = false;
                     moves.push_back(help);
-                    help.update_board(board[whiteQ], whiteQ);//reset help to original state, because for each gamestate in moves we want an individual move
                 }
                 for(int j = 0; j < count_1s(R_attacks); j++){
+                    help = GameState(board, whiteQ, atepiece);//reset help to original state, because for each gamestate in moves we want an individual move, and add to the state what piece will be moved, for later draw searches
                     individual_move = pop_1st_bit(&R_attacks);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, whiteQ, side);
+                    if(all_black_pieces() > help.all_black_pieces()) atepiece = true;
+                    else atepiece = false;
                     moves.push_back(help);
-                    help.update_board(board[whiteQ], whiteQ);//reset help to original state, because for each gamestate in moves we want an individual move
                 }//Queen moves like bishop and rook, for convenience of not making queen magic numbers use rook and bishop separately for same queen square
             }
-            for(int i = 0; i < count_1s(board[whiteK]); i++){//for each knight
-                piecesquare = pop_1st_bit(&temp[whiteK]);//piecesquare is current knight's location
+            for(int i = 0; i < count_1s(board[whiteK]); i++){//for each kingt
+                piecesquare = pop_1st_bit(&temp[whiteK]);//piecesquare is current king's location
                 piecemoves = all_king_moves_mask(piecesquare, all_white_pieces());//piecemoves is bitboard with all knight moves
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(piecemoves); j++){
+                    help = GameState(board, whiteQ, atepiece);//reset help to original state, because for each gamestate in moves we want an individual move, and add to the state what piece will be moved, for later draw searches
                     individual_move = pop_1st_bit(&piecemoves);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, whiteN, side);
+                    if(all_black_pieces() > help.all_black_pieces()) atepiece = true;
+                    else atepiece = false;
                     moves.push_back(help);
-                    help.update_board(board[whiteK], whiteK);//reset help to original state, because for each gamestate in moves we want an individual move
+                    
                 }
             }
         }
@@ -513,10 +564,12 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
                 piecemoves = all_pawn_moves_mask(piecesquare, side, all_white_pieces(), all_black_pieces());//piecemoves is bitboard with all pawn moves
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(piecemoves); j++){
+                    help = GameState(board, blackP, atepiece);//reset help to original state, because for each gamestate in moves we want an individual move, and add to the state what piece will be moved, for later draw searches
                     individual_move = pop_1st_bit(&piecemoves);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, blackP, side);
+                    if(all_white_pieces() > help.all_white_pieces()) atepiece = true;
+                    else atepiece = false;
                     moves.push_back(help);
-                    help.update_board(board[blackP], blackP);//reset help to original state, because for each gamestate in moves we want an individual move
                 }
             }
             for(int i = 0; i < count_1s(board[blackN]); i++){//for each knight
@@ -524,50 +577,60 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
                 piecemoves = all_knight_moves_mask(piecesquare, all_black_pieces());//piecemoves is bitboard with all knight moves
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(piecemoves); j++){
+                    help = GameState(board, blackN, atepiece);
                     individual_move = pop_1st_bit(&piecemoves);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, blackN, side);
                     moves.push_back(help);
-                    help.update_board(board[blackN], blackN);//reset help to original state, because for each gamestate in moves we want an individual move
-                }
+                    if(all_white_pieces() > help.all_white_pieces()) atepiece = true;
+                    else atepiece = false;
+                 }
             }
             for(int i = 0; i < count_1s(board[blackB]); i++){//for each bishop
                 piecesquare = pop_1st_bit(&temp[blackB]);//piecesquare is current bishop's location
-                B_attacks = batt_tables[piecesquare][transform(all_black_pieces(), Bmagics[piecesquare], BBits[piecesquare])]; 
+                B_attacks = batt_tables[piecesquare][transform(all_black_pieces(), Bmagics[piecesquare], BBits[piecesquare])];
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(B_attacks); j++){
+                    help = GameState(board, blackB, atepiece);
                     individual_move = pop_1st_bit(&B_attacks);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, blackB, side);
                     moves.push_back(help);
-                    help.update_board(board[blackB], blackB);//reset help to original state, because for each gamestate in moves we want an individual move
+                    if(all_white_pieces() > help.all_white_pieces()) atepiece = true;
+                    else atepiece = false;
                 }
             }
-            for(int i = 0; i < count_1s(board[blackR]); i++){//for each bishop
+            for(int i = 0; i < count_1s(board[blackR]); i++){//for each rook
                 piecesquare = pop_1st_bit(&temp[blackR]);//piecesquare is current bishop's location
-                R_attacks = ratt_tables[piecesquare][transform(all_black_pieces(),Rmagics[piecesquare], RBits[piecesquare])]; 
+                R_attacks = ratt_tables[piecesquare][transform(all_black_pieces(),Rmagics[piecesquare], RBits[piecesquare])];
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(R_attacks); j++){
+                    help = GameState(board, blackR, atepiece);
                     individual_move = pop_1st_bit(&R_attacks);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, blackR, side);
                     moves.push_back(help);
-                    help.update_board(board[blackR], blackR);//reset help to original state, because for each gamestate in moves we want an individual move
+                    if(all_white_pieces() > help.all_white_pieces()) atepiece = true;
+                    else atepiece = false;
                 }
             }
-            for(int i = 0; i < count_1s(board[blackQ]); i++){//for each bishop
+            for(int i = 0; i < count_1s(board[blackQ]); i++){//for each Queen
                 piecesquare = pop_1st_bit(&temp[blackQ]);//piecesquare is current bishop's location
-                B_attacks = batt_tables[piecesquare][transform(all_black_pieces(), Bmagics[piecesquare], BBits[piecesquare])]; 
-                R_attacks = ratt_tables[piecesquare][transform(all_black_pieces(),Rmagics[piecesquare], RBits[piecesquare])]; 
+                B_attacks = batt_tables[piecesquare][transform(all_black_pieces(), Bmagics[piecesquare], BBits[piecesquare])];
+                R_attacks = ratt_tables[piecesquare][transform(all_black_pieces(),Rmagics[piecesquare], RBits[piecesquare])];
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(B_attacks); j++){
+                    help = GameState(board, blackQ, atepiece);
                     individual_move = pop_1st_bit(&B_attacks);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, blackQ, side);
                     moves.push_back(help);
-                    help.update_board(board[blackQ], blackQ);//reset help to original state, because for each gamestate in moves we want an individual move
+                    if(all_white_pieces() > help.all_white_pieces()) atepiece = true;
+                    else atepiece = false;
                 }
                 for(int j = 0; j < count_1s(R_attacks); j++){
+                    help = GameState(board, blackQ, atepiece);
                     individual_move = pop_1st_bit(&R_attacks);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, blackQ, side);
                     moves.push_back(help);
-                    help.update_board(board[blackQ], blackQ);//reset help to original state, because for each gamestate in moves we want an individual move
+                    if(all_white_pieces() > help.all_white_pieces()) atepiece = true;
+                    else atepiece = false;
                 }//Queen moves like bishop and rook, for convenience of not making queen magic numbers use rook and bishop separately for same queen square
             }
             for(int i = 0; i < count_1s(board[blackK]); i++){//for each knight
@@ -575,30 +638,31 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
                 piecemoves = all_king_moves_mask(piecesquare, all_black_pieces());//piecemoves is bitboard with all knight moves
                 //help.update_board(piecemoves, whiteP);
                 for(int j = 0; j < count_1s(piecemoves); j++){
+                    help = GameState(board, blackK, atepiece);
                     individual_move = pop_1st_bit(&piecemoves);//for each move in piecemoves
                     move_piece(piecesquare, individual_move, help, blackK, side);
                     moves.push_back(help);
-                    help.update_board(board[blackK], blackK);//reset help to original state, because for each gamestate in moves we want an individual move
+                    if(all_white_pieces() > help.all_white_pieces()) atepiece = true;
+                    else atepiece = false;
                 }
             }
         }
         return moves;
     };
-    std::vector<GameState> GameState::get_legal_moves(int side,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const{
+    std::vector<GameState> GameState::get_legal_moves(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables)const {
         
-        std::vector<GameState> legal_moves, pseudo_legal = get_pseudo_legal_moves(side,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tablesint side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
+        std::vector<GameState> legal_moves, pseudo_legal = get_pseudo_legal_moves(side, Rmagics, Bmagics, ratt_tables, batt_tables);
         for (int i = 0; i < pseudo_legal.size(); i++)
         {
-            if(!is_checked(side, pseudo_legal[i])) legal_moves.push_back(pseudo_legal[i]); 
+            if(!is_checked(side, pseudo_legal[i])) legal_moves.push_back(pseudo_legal[i]);
         }
         return legal_moves;
         
     };
     bool GameState::is_terminal(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const{
         std::vector<GameState> white_moves, black_moves;
-        white_moves = get_legal_moves(white,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
-        black_moves = get_legal_moves(black,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
-        if(fifty_move_counter >= 50) return true;
+        white_moves = get_legal_moves(white, Rmagics, Bmagics, ratt_tables, batt_tables);
+        black_moves = get_legal_moves(black, Rmagics, Bmagics, ratt_tables, batt_tables);
         if(!side){
             if(white_moves.size() == 0) return true;
             if(board[whiteP] == 0 && board[whiteR] == 0 && board[whiteQ] == 0 && (board[whiteB] == 0 || board[whiteN] == 0)) return true;//if no sufficient pieces to checkmate then draw
@@ -611,25 +675,26 @@ uint64 all_king_moves_mask(int square, uint64 blockers){
         return false;
     };
     double GameState::get_result(int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables) const{
-        std::vector<GameState> player_moves = get_legal_moves(side,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables), enemy_moves = get_legal_moves(!side,int side,std::vector<uint64> Rmagics,std::vector<uint64> Bmagics, std::vector<std::vector<uint64>> ratt_tables, std::vector<std::vector<uint64>> batt_tables);
-        if(fifty_move_counter >= 50) return 0;//according to the rule if no pawn moves or takes for 50 turns then its a draw
-        if(player_moves == 0){
-            if(is_checked(side, board)) return -1;//if the player is checked and cant move he lost
+        std::vector<GameState> player_moves = get_legal_moves(side, Rmagics, Bmagics, ratt_tables, batt_tables), enemy_moves = get_legal_moves(!side, Rmagics, Bmagics, ratt_tables, batt_tables);
+        if(player_moves.size() == 0){
+            if(is_checked(side, *this)) return -1;//if the player is checked and cant move he lost
             return 0;//if he cant move but no check then its a draw(we check for repetition in mcts code)
         }
-        else if(enemy_moves == 0) return 1;
+        else if(enemy_moves.size() == 0) return 1;
         return 0;//because we only call code if game ended then we can assume that player drew
     };
+    int GameState::piece_type(int square)const{
+        uint64 temp = 1ULL << square;
+        for(int i = 0; i < board.size(); i++){
+            if(board[i] & temp) return i;
+        }
+        return 64;
+    }
     std::string GameState::hash_position() const {
         std::string hash;
-        for (const auto& row : board) {
-            for (const auto& piece : row) {
-                hash += piece.to_string();
-            }
+        for (int i = 0; i < 64; i++) {
+            hash += std::to_string(piece_type(i));
         }
         return hash;
     }
     //bool operator ==(const GameState& other)const;
-
-
-
